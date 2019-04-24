@@ -70,8 +70,8 @@ function filterByValue(){
      fetch('https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj')
   .then(res => res.json())//response type
   .then(data => {
-  const photosArray = data.photos.filter((photo) => {
-    return JSON.stringify(photo).indexOf(JSON.stringify(parseInt(searchText)) !== -1)
+  const photosArray = data.photos.find((photo) => {
+    return JSON.stringify(photo.id).indexOf(JSON.stringify(searchText) !== -1)
   });
   document.getElementById("data").innerHTML =JSON.stringify(photosArray, 2).replace(/ /g, '&nbsp;').replace(/ \\n/g, '&lt;br;&gt;');
 })
