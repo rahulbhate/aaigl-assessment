@@ -13,98 +13,117 @@ distinctArray = inputArray.filter(
 );
 alert("Distinct elements from list: " + distinctArray);
 
-function StockPicker(arr) { 
+function StockPicker(arr) {
+  var max_profit = -1;
+  var buy_price = 0;
+  var sell_price = 0;
 
-var max_profit = -1;
-var buy_price = 0;
-var sell_price = 0;
+  // this allows our loop to keep iterating the buying
+  // price until a cheap stock price is found
+  var change_buy_index = true;
 
-// this allows our loop to keep iterating the buying
-// price until a cheap stock price is found
-var change_buy_index = true;
+  // loop through list of stock prices once
+  for (var i = 0; i < arr.length - 1; i++) {
+    // selling price is the next element in list
+    sell_price = arr[i + 1];
 
-// loop through list of stock prices once
-for (var i = 0; i < arr.length-1; i++) {
+    // if we have not found a suitable cheap buying price yet
+    // we set the buying price equal to the current element
+    if (change_buy_index) {
+      buy_price = arr[i];
+    }
 
-// selling price is the next element in list
-sell_price = arr[i+1]; 
+    // if the selling price is less than the buying price
+    // we know we cannot make a profit so we continue to the
+    // next element in the list which will be the new buying price
+    if (sell_price < buy_price) {
+      change_buy_index = true;
+      continue;
+    }
 
-// if we have not found a suitable cheap buying price yet
-// we set the buying price equal to the current element
-if (change_buy_index) { buy_price = arr[i]; }
+    // if the selling price is greater than the buying price
+    // we check to see if these two indices give us a better
+    // profit then what we currently have
+    else {
+      var temp_profit = sell_price - buy_price;
+      if (temp_profit > max_profit) {
+        max_profit = temp_profit;
+      }
+      change_buy_index = false;
+    }
+  }
 
-// if the selling price is less than the buying price
-// we know we cannot make a profit so we continue to the 
-// next element in the list which will be the new buying price
-if (sell_price < buy_price) {
-change_buy_index = true; 
-continue;
-}
-
-// if the selling price is greater than the buying price
-// we check to see if these two indices give us a better 
-// profit then what we currently have
-else { 
-var temp_profit = sell_price - buy_price;
-if (temp_profit > max_profit) { max_profit = temp_profit; }
-change_buy_index = false;
-}
-
-}
-
-return max_profit;
-   
+  return max_profit;
 }
 
 console.log("Maximum profit: " + StockPicker([45, 24, 35, 31, 40, 38, 11]));
 
-function displayData(){
-  fetch('https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj')
-  .then(res => res.json())//response type
-  .then(data => document.getElementById("data").innerHTML =JSON.stringify(data, null, 2).replace(/ /g, '&nbsp;').replace(/ \\n/g, '&lt;br;&gt;')); //log the data;
-
+function displayData() {
+  fetch(
+    "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj"
+  )
+    .then(res => res.json()) //response type
+    .then(
+      data =>
+        (document.getElementById("data").innerHTML = JSON.stringify(
+          data,
+          null,
+          2
+        )
+          .replace(/ /g, "&nbsp;")
+          .replace(/ \\n/g, "&lt;br;&gt;"))
+    ); //log the data;
 }
 //call the fetch function
-function filterByValue(){
+function filterByValue() {
   var searchText = document.getElementById("txtSearch").value;
-     fetch('https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj')
-  .then(res => res.json())//response type
-  .then(data => {
-  const photosArray = data.photos.find((photo) => {
-    return JSON.stringify(photo.id).indexOf(JSON.stringify(searchText) !== -1)
-  });
-  document.getElementById("data").innerHTML =JSON.stringify(photosArray, 2).replace(/ /g, '&nbsp;').replace(/ \\n/g, '&lt;br;&gt;');
-})
-.catch( error => console.log(error))
+  fetch(
+    "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj"
+  )
+    .then(res => res.json()) //response type
+    .then(data => displayFilterData(data,searchText))
+    .catch(error => console.log(error));
 }
+function displayRawData(data) {
+  const photosArray = data.photos.map((photo, value) => {
+    return {
+      id: photo.id,
+      camera: {
+        id: photo.camera.id,
+        full_name: photo.camera.full_name
+      },
+      image: photo.img_src,
+      earth_date: photo.earth_date
+    };
+  });
+  document.getElementById("data").innerHTML = JSON.stringify(
+    photosArray,
+    null,
+    2
+  )
+    .replace(/ /g, "&nbsp;")
+    .replace(/ \\n/g, "&lt;br;&gt;");
+}
+
+function displayFilterData(data, searchText) {
+  const photosArray = data.photos.filter(photo => {
+    //console.log(photo.id , parseInt(searchText));
+    return JSON.stringify(photo.id) === JSON.stringify(parseInt(searchText));
+  });
+  document.getElementById("data").innerHTML = JSON.stringify(photosArray, 2)
+    .replace(/ /g, "&nbsp;")
+    .replace(/ \\n/g, "&lt;br;&gt;");
+}
+
 function reMapData() {
   fetch(
     "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=PCDtvFpDDfuj8Z1NImNsz1d0KovzKxRo1p2nCjZj"
   )
     .then(res => res.json()) //response type
-    .then(data => {
-      const photosArray = data.photos.map((photo, value) => {
-        return {
-          id: photo.id,
-          camera: {
-            id: photo.camera.id,
-            full_name: photo.camera.full_name
-          },
-          image: photo.img_src,
-          earth_date: photo.earth_date
-        };
-      });
-      document.getElementById("data").innerHTML = JSON.stringify(
-        photosArray,
-        null,
-        2
-      )
-        .replace(/ /g, "&nbsp;")
-        .replace(/ \\n/g, "&lt;br;&gt;");
-    })
-    .catch( error => console.log(error));
+    .then(data => displayRawData(data))
+    .catch(error => console.log(error));
 }
-function displayDataById() {
-  var searchText = document.getElementById("txtSearch").value;
-  alert(searchText);
-}
+// function displayDataById() {
+//   var searchText = document.getElementById("txtSearch").value;
+//   alert(searchText);
+// }
